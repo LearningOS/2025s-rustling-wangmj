@@ -2,7 +2,6 @@
     single linked list merge
     This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -31,9 +30,75 @@ impl<T> Default for LinkedList<T> {
         Self::new()
     }
 }
-
-impl<T> LinkedList<T> 
+impl<T> LinkedList<T>
+where
+    T: PartialOrd + Copy,
 {
+    pub fn merge2(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
+        let mut lla_index = 0;
+        let mut llb_index = 0;
+        let mut ret = Self::default();
+        loop {
+            let node_a = list_a.get(lla_index);
+            let node_b = list_b.get(llb_index);
+            if let Some(node_a) = node_a {
+                if let Some(node_b) = node_b {
+                    if *node_a < *node_b {
+                        ret.add(*node_b);
+                        llb_index += 1;
+                    } else {
+                        ret.add(*node_a);
+                        lla_index += 1;
+                    }
+                } else {
+                    ret.add(*node_a);
+                    lla_index += 1;
+                }
+            } else if let Some(node_b) = node_b {
+                ret.add(*node_b);
+                llb_index += 1;
+            } else {
+                break;
+            }
+        }
+        ret
+    }
+    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
+        let mut ret = Self::default();
+        let mut node_a = list_a.start;
+        let mut node_b = list_b.start;
+        loop {
+            match (node_a, node_b) {
+                (Some(a), Some(b)) => {
+                    let a_v = unsafe { (*a.as_ptr()).val };
+                    let b_v = unsafe { (*b.as_ptr()).val };
+                    if a_v < b_v {
+                        node_a = unsafe { (*a.as_ptr()).next };
+                        ret.add(a_v);
+                    } else {
+                        node_b = unsafe { (*b.as_ptr()).next };
+                        ret.add(b_v);
+                    }
+                }
+                (Some(a), None) => {
+                    let a_v = unsafe { (*a.as_ptr()).val };
+                    ret.add(a_v);
+                    node_a = unsafe { (*a.as_ptr()).next };
+                }
+                (None, Some(b)) => {
+                    let b_v = unsafe { (*b.as_ptr()).val };
+                    ret.add(b_v);
+                    node_b = unsafe { (*b.as_ptr()).next };
+                }
+                (None, None) => {
+                    break;
+                }
+            }
+        }
+        ret
+    }
+}
+impl<T> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -66,36 +131,6 @@ impl<T> LinkedList<T>
                 _ => self.get_ith_node(unsafe { (*next_ptr.as_ptr()).next }, index - 1),
             },
         }
-    }
-    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self 
-    {
-        let mut lla_index = 0;
-        let mut llb_index = 0;
-        let mut ret = Self::default();
-        loop {
-            let node_a = list_a.get(lla_index);
-            let node_b = list_b.get(llb_index);
-            if let Some(node_a) = node_a {
-                if let Some(node_b) = node_b {
-                    if *node_a > *node_b {
-                        ret.add(*node_b);
-                        llb_index += 1;
-                    } else {
-                        ret.add(*node_a);
-                        lla_index += 1;
-                    }
-                } else {
-                    ret.add(*node_a);
-                    lla_index += 1;
-                }
-            } else if let Some(node_b) = node_b {
-                ret.add(*node_b);
-                llb_index += 1;
-            } else {
-                break;
-            }
-        }
-        ret
     }
 }
 
